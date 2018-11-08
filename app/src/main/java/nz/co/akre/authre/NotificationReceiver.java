@@ -10,16 +10,12 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-/**
- * Created by Richard on 02-Sep-16.
- */
-public class NotificationReceiver extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
+public class NotificationReceiver {
+    public static void parseNotification(Context context, Intent intent) {
+        Log.i("AUTH", "Auth notification passed to receiver");
         String agent = intent.getStringExtra("auth_agent");
         String message = intent.getStringExtra("auth_message");
         MessageParser mp = new MessageParser(context);
@@ -36,7 +32,7 @@ public class NotificationReceiver extends BroadcastReceiver {
         }
     }
 
-    private void UpdateAuthLog(final String agent, final String message, final Context context) {
+    private static void UpdateAuthLog(final String agent, final String message, final Context context) {
         // update auth log
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         Calendar c = Calendar.getInstance();

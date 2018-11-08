@@ -13,7 +13,8 @@ import android.os.IBinder;
 import android.os.Parcel;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
-import android.support.v7.app.NotificationCompat;
+//import android.support.v7.app.NotificationCompat;
+import android.text.SpannableString;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -59,30 +60,67 @@ public class NLService extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        String ingressPackageName = "com.nianticproject.ingress";
-        if (sbn.getPackageName().equals(ingressPackageName)) { // ignore non-ingress notifications
-            String agent;
-            String message;
-            //Notification notification = sbn.getNotification();
-            Bundle extras = sbn.getNotification().extras;
-            // set for single message, overwrite later if multiple messages
-            agent = extras.getString("android.title");
-            message = extras.getString("android.text");
-            // test for multiple messages
-            CharSequence[] textLineCharSequence = extras.getCharSequenceArray("android.textLines");
-            if (textLineCharSequence != null) { // text lines is null if only single message
-                String latestMessage = textLineCharSequence[0].toString(); // multiple messages, first is latest. format is agentName[space]message
-                String[] messageSplit = latestMessage.split(" ", 2); // get two parts (agent and message)
-                // set for multiple messages
-                agent = messageSplit[0];
-                message = messageSplit[1];
-            }
-            // broadcast to NotificationReceiver
-            Intent i = new Intent("nz.co.akre.authre.NOTIFICATION_LISTENER_EXAMPLE");
-            i.putExtra("auth_agent",agent);
-            i.putExtra("auth_message",message);
-            sendBroadcast(i);
+        String ingressPackageName = "com.nianticproject.ingress"; // Scanner redacted
+        String primePackageName = "com.nianticlabs.ingress.prime.qa";
+        Bundle extras = sbn.getNotification().extras;
+        if (sbn.getPackageName().equals(ingressPackageName)) { // process classic Ingress notifications
+            Intent i = IngressClassicIntent(extras);
+            NotificationReceiver.parseNotification(this, i);
+        } else if (sbn.getPackageName().equals(primePackageName)) { // process Ingress Prime notifications
+            Intent i = IngressPrimeIntent(extras);
+            NotificationReceiver.parseNotification(this, i);
         }
+    }
+
+    private Intent IngressClassicIntent(Bundle extras) {
+        Log.i("NOTIFY", "Processing Ingress Classic notification");
+        SpannableString agentSpanString;
+        SpannableString messageSpanString;
+        String agent = "";
+        String message = "";
+        // set for single message, overwrite later if multiple messages
+        agentSpanString = (SpannableString) extras.get("android.title");
+        if (agentSpanString != null) agent = agentSpanString.toString();
+        messageSpanString = (SpannableString) extras.get("android.text");
+        if (messageSpanString != null) message = messageSpanString.toString();
+        // test for multiple messages
+        CharSequence[] textLineCharSequence = extras.getCharSequenceArray("android.textLines");
+        if (textLineCharSequence != null) { // text lines is null if only single message
+            Log.i("NOTIFY", "Detected multiple notifications");
+            String latestMessage = textLineCharSequence[0].toString(); // multiple messages, first is latest. format is agentName[space]message
+            String[] messageSplit = latestMessage.split(" ", 2); // get two parts (agent and message)
+            // set for multiple messages
+            agent = messageSplit[0];
+            message = messageSplit[1];
+        }
+        // broadcast to NotificationReceiver
+        Intent i = new Intent("nz.co.akre.authre.NOTIFICATION_LISTENER_EXAMPLE");
+        i.putExtra("auth_agent",agent);
+        i.putExtra("auth_message",message);
+//            sendBroadcast(i);
+        return i;
+    }
+
+    private Intent IngressPrimeIntent(Bundle extras) {
+        Log.i("NOTIFY", "Processing Ingress Prime notification");
+        String agent = extras.getString("android.title");
+        String message = extras.getString("android.text");
+        // test for multiple messages
+        CharSequence[] textLineCharSequence = extras.getCharSequenceArray("android.textLines");
+        if (textLineCharSequence != null) { // text lines is null if only single message
+            Log.i("NOTIFY", "Detected multiple notifications");
+            String latestMessage = textLineCharSequence[0].toString(); // multiple messages, first is latest. format is agentName[space]message
+            String[] messageSplit = latestMessage.split(" ", 2); // get two parts (agent and message)
+            // set for multiple messages
+            agent = messageSplit[0];
+            message = messageSplit[1];
+        }
+        // broadcast to NotificationReceiver
+        Intent i = new Intent("nz.co.akre.authre.NOTIFICATION_LISTENER_EXAMPLE");
+        i.putExtra("auth_agent",agent);
+        i.putExtra("auth_message",message);
+//            sendBroadcast(i);
+        return i;
     }
 
     @Override

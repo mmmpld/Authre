@@ -29,10 +29,14 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".NotificationReceiver"
-            android:label="@string/app_name">
+        <receiver
+            android:name=".NotificationReceiver"
+            android:label="@string/app_name"
+            android:exported="true"
+            android:enabled="true">
             <intent-filter>
                 <action android:name="nz.co.akre.authre.NOTIFICATION_LISTENER_EXAMPLE"/>
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
 
